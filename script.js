@@ -1,152 +1,43 @@
-const cardsContainer = document.getElementById('cards-container');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
-const currentEl = document.getElementById('current');
-const showBtn = document.getElementById('show');
-const hideBtn = document.getElementById('hide');
-const questionEl = document.getElementById('question');
-const answerEl = document.getElementById('answer');
-const addCardBtn = document.getElementById('add-card');
-const clearBtn = document.getElementById('clear');
-const addContainer = document.getElementById('add-container');
+const days = document.getElementById('days');
+const hours = document.getElementById('hours');
+const minutes = document.getElementById('minutes');
+const seconds = document.getElementById('seconds');
+const countdown = document.getElementById('countdown');
+const year = document.getElementById('year');
+const loading = document.getElementById('loading');
 
-//Keep track of current cards
-let currentActiveCard = 0;
+const currentYear = new Date().getFullYear();
+const newYearTime = new Date(`January 01 ${currentYear + 1} 00:00:00`);
 
-//Store the DOM cards
-const cardsEl = [];
+//Set background year
+year.innerText = currentYear + 1;
 
-//Store card data
-const cardsData = getCardsData();
+//Update countdown time
+function updateCountdown(){
+    const currentTime = new Date;
+    const diff = newYearTime - currentTime;
 
-// const cardsData = [{
-//         question: 'What is the main answer to life and existance?',
-//         answer: 'Forty two'
-//     },
-//     {
-//         question: 'What is a variable?',
-//         answer: 'Container for a piece of data'
-//     },
-//     {
-//         question: 'Example of Case Sensative Variable?',
-//         answer: 'thisIsAVariable'
-//     }
-// ];
+    const d = Math.floor(diff / 1000 / 60 / 60/ 24);
+    const h = Math.floor(diff / 1000 / 60 / 60) % 24;
+    const m = Math.floor(diff / 1000 / 60 ) % 60;
+    const s = Math.floor(diff / 1000) % 60;
 
-//Create cards
-function createCards() {
-    cardsData.forEach((data, index) => createCard(data, index));
+    //Add values to DOM
+    days.innerHTML = d;
+    hours.innerHTML = h < 10 ? '0'+h : h;
+    minutes.innerHTML = m < 10 ? '0'+m : m;
+    seconds.innerHTML = s < 10 ? '0'+s : s;
+
 };
 
-//Create a single card in DOM
-function createCard(data, index) {
-    const card = document.createElement('div');
-    card.classList.add('card');
-    if (index === 0) {
-        card.classList.add('active');
-    }
+//Show spinner before countdown
+setTimeout(()=> {
+ loading.remove();
+ countdown.style.display = 'flex';
+}, 1000)
 
-    card.innerHTML = `   
-	<div class="inner-card">
-                <div class="inner-card-front">
-                    <p>
-                        ${data.question}
-                    </p>
-                </div>
-                <div class="inner-card-back">
-                    <p>
-                        ${data.answer}
-                    </p>
-                </div>
-    </div>
-	`;
+//Run every second
+setInterval(updateCountdown, 1000);
 
-    card.addEventListener('click', () => card.classList.toggle('show-answer'));
 
-    //Add to DOM cards
-    cardsEl.push(card);
 
-    //Add card to array
-    cardsContainer.appendChild(card);
-
-    updateCurrentText();
-}
-
-//Show number of cards
-function updateCurrentText() {
-    currentEl.innerText = `${currentActiveCard + 1}/${cardsEl.length}`;
-};
-
-//Get cards from local storage
-function getCardsData() {
-    const cards = JSON.parse(localStorage.getItem('cards'));
-    return cards === null ? [] : cards;
-}
-
-//Add card to local storage
-function setCardsData(cards) {
-    localStorage.setItem('cards', JSON.stringify(cards));
-    window.location.reload();
-}
-
-createCards();
-
-//Event listeners
-//Next button
-nextBtn.addEventListener('click', () => {
-    cardsEl[currentActiveCard].className = 'card left';
-
-    currentActiveCard = currentActiveCard + 1;
-
-    if (currentActiveCard > cardsEl.length - 1) {
-        currentActiveCard = cardsEl.length - 1;
-    }
-
-    cardsEl[currentActiveCard].className = 'card active';
-    updateCurrentText();
-});
-
-//Previous button
-prevBtn.addEventListener('click', () => {
-    cardsEl[currentActiveCard].className = 'card right';
-
-    currentActiveCard = currentActiveCard - 1;
-
-    if (currentActiveCard < 0) {
-        currentActiveCard = 0;
-    }
-
-    cardsEl[currentActiveCard].className = 'card active';
-    updateCurrentText();
-});
-
-//Show add container
-showBtn.addEventListener('click', () => addContainer.classList.add('show'));
-//Hide add container
-hideBtn.addEventListener('click', () => addContainer.classList.remove('show'));
-
-//Add new card
-addCardBtn.addEventListener('click', () => {
-    const question = questionEl.value;
-    const answer = answerEl.value;
-    if (question.trim() && answer.trim()) {
-        const newCard = { question, answer };
-
-        createCard(newCard);
-
-        questionEl.value = '';
-        answerEl.value = '';
-
-        addContainer.classList.remove('show');
-
-        cardsData.push(newCard);
-        setCardsData(cardsData);
-    }
-});
-
-//Clear cards button
-clearBtn.addEventListener('click', () => {
-    localStorage.clear();
-    cardsContainer.innerHTML = '';
-    window.location.reload();
-});
